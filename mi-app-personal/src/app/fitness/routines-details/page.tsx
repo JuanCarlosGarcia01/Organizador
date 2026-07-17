@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFitnessStore } from '@/store/useFitnessStore';
 
-export default function RoutineDetailPage() {
+function RoutineDetailContent() {
   const { isAuthenticated } = useAuthStore();
   const { routines, exercises, loadRoutines, loadExercises, completeRoutine, addExercise, checkExercise, editExerciseNotes, removeExercise } = useFitnessStore();
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function RoutineDetailPage() {
       loadRoutines();
       loadExercises(routineId);
     }
-  }, [isAuthenticated, routineId]);
+  }, [isAuthenticated, routineId, router, loadRoutines, loadExercises]);
 
   const routine = routines.find(r => r.id === routineId);
   const completedCount = exercises.filter(e => e.completed).length;
@@ -111,6 +111,19 @@ export default function RoutineDetailPage() {
         <EditExerciseModal exercise={exercises.find(e => e.id === editingId)!} routineId={routineId} onClose={() => { setEditingId(null); loadExercises(routineId); }} />
       )}
     </div>
+  );
+}
+
+// Este es el nuevo componente principal exportado que envuelve tu contenido en Suspense
+export default function RoutineDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <p className="text-gray-400 dark:text-gray-500">Cargando datos...</p>
+      </div>
+    }>
+      <RoutineDetailContent />
+    </Suspense>
   );
 }
 
